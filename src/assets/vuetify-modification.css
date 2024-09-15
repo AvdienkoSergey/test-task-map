@@ -1,0 +1,7 @@
+.v-app-bar {
+  transition: height 0.3s ease;
+}
+
+.v-app-bar--dense {
+  height: auto; /* Автоматическое изменение высоты при наличии второго ряда */
+}

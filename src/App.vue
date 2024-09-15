@@ -1,30 +1,30 @@
 <template>
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </nav>
-  <router-view />
+  <v-app>
+    <base-header></base-header>
+    <!-- <v-btn @click="toggleTheme" style="margin-top: 200px">
+      <base-icon :name="'menu'" />
+      toggle theme
+    </v-btn> -->
+    <v-main>
+      <router-view />
+    </v-main>
+  </v-app>
 </template>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
+<script lang="ts" setup>
+import { onMounted } from "vue";
+import { useTheme, useDisplay } from "vuetify";
+// import BaseIcon from "@/components/BaseIcon.vue";
+import BaseHeader from "@/components/BaseHeader.vue";
 
-nav {
-  padding: 30px;
-}
+// const theme = useTheme();
+const { mobile } = useDisplay();
 
-nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
+// function toggleTheme() {
+//   theme.global.name.value = theme.global.current.value.dark ? "light" : "dark";
+// }
 
-nav a.router-link-exact-active {
-  color: #42b983;
-}
-</style>
+onMounted(() => {
+  console.log(mobile.value); // false
+});
+</script>

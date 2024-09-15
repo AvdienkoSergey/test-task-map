@@ -1,26 +1,53 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
-import HomeView from "../views/HomeView.vue";
+import AboutTaskView from "@/views/AboutTaskView.vue";
+import { Observer } from "@/events/_observer";
+import { wentToAboutTaskPage$, wentToMapPage$ } from "@/events/changingPages";
+import { asyncAppendScript } from "@/services/yandex-map-api";
 
-const routes: Array<RouteRecordRaw> = [
-  {
-    path: "/",
-    name: "home",
-    component: HomeView,
-  },
-  {
-    path: "/about",
-    name: "about",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () =>
-      import(/* webpackChunkName: "about" */ "../views/AboutView.vue"),
-  },
-];
+const AboutTask = {
+  path: "/",
+  name: "about-task",
+  component: AboutTaskView,
+};
+const Map = {
+  path: "/map",
+  name: "map",
+  // route level code-splitting
+  // this generates a separate chunk (about.[hash].js) for this route
+  // which is lazy-loaded when the route is visited.
+  component: () =>
+    import(/* webpackChunkName: "about" */ "@/views/MapView.vue"),
+};
+
+const routes: Array<RouteRecordRaw> = [AboutTask, Map];
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes,
+});
+
+function cteateLog(name: string) {
+  const printPageName = () => console.log(`Routing to page: ${name}`);
+  return printPageName;
+}
+
+const visitAboutTaskPage = new Observer(cteateLog(AboutTask.name));
+const visitMapPage = new Observer(cteateLog(Map.name));
+wentToAboutTaskPage$.subscribe(visitAboutTaskPage);
+wentToMapPage$.subscribe(visitMapPage);
+
+router.beforeEach((to) => {
+  switch (to.name) {
+    case AboutTask.name:
+      wentToAboutTaskPage$.on(Promise.resolve());
+      break;
+    case Map.name:
+      wentToMapPage$.on(asyncAppendScript);
+      break;
+
+    default:
+      break;
+  }
 });
 
 export default router;
