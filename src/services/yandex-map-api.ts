@@ -1,6 +1,9 @@
-import { useStore } from "vuex";
 import { toRaw } from "vue";
-const store = useStore();
+import { clickMap$ } from "@/events/map";
+
+interface MapClickEvent {
+  get: (key: string) => [number, number] | undefined;
+}
 
 const API_KEY = "85d9555e-d585-4ec8-a35c-5ea96c912f3f";
 const API_URL = `https://api-maps.yandex.ru/2.1/?apikey=${API_KEY}&lang=ru_RU`;
@@ -24,27 +27,42 @@ export const asyncAppendScript = new Promise((resolve, reject) => {
   script.onerror = (error: unknown) => reject(error);
 });
 
-interface MapClickEvent {
-  get: (key: string) => [number, number] | undefined;
-}
+export const drawMap = (coordinates: number[]) =>
+  new Promise((resolve, reject) => {
+    if (!window || !ymaps) reject("The problem with defining the map object");
+    setTimeout(() => {
+      if (!ymaps.Map) reject("The problem with defining the map constructor");
+      const map = new ymaps.Map("map", {
+        center: coordinates,
+        zoom: 14,
+        controls: ["zoomControl"],
+      });
+      resolve(map);
+    }, 1000);
+  });
 
 function onMapClick(event: MapClickEvent) {
   const coords = event.get("coords");
   if (coords) {
-    console.log(`Координаты: [${coords[0]}, ${coords[1]}]`);
+    const [latitude, longitude] = coords;
+    clickMap$.on(
+      Promise.resolve({
+        id: Date.now(),
+        latitude,
+        longitude,
+      })
+    );
   } else {
-    console.log("Это не возможно");
+    clickMap$.on(Promise.resolve(null));
   }
 }
 
-function addClickListener() {
-  if (!store.getters.mapInstance) return;
-  // map.events.add("click", onMapClick);
+export function addClickListener(map: ymaps.Map) {
+  toRaw(map).events.add("click", onMapClick);
 }
 
-function removeClickListener() {
-  if (!store.getters.mapInstance) return;
-  // map?.events.remove("click", onMapClick);
+export function removeClickListener(map: ymaps.Map) {
+  toRaw(map).events.remove("click", onMapClick);
 }
 
 export function createPlacemark({
@@ -60,12 +78,18 @@ export function createPlacemark({
     [latitude, longitude],
     {
       // Данные для балуна и хинта
-      balloonContent: `<div>Place ID: ${id}</div><div>Coordinates: ${latitude}, ${longitude}</div>`,
-      hintContent: `ID: ${id} | Coordinates: ${latitude}, ${longitude}`,
+      balloonContent: `<div>Place ID: ${id}</div><div>Coordinates: ${parseFloat(
+        latitude.toFixed(4)
+      )}, ${parseFloat(latitude.toFixed(4))}</div>`,
+      hintContent: `ID: ${id} | Coordinates: ${parseFloat(
+        latitude.toFixed(4)
+      )}, ${parseFloat(latitude.toFixed(4))}`,
     },
     {
       preset: "islands#icon",
       iconColor: "#0095b6",
+      hideIconOnBalloonOpen: false,
+      balloonOffset: [0, -40],
     }
   );
 
@@ -87,4 +111,18 @@ export function moveToCoordinates(map: ymaps.Map, coordinates: number[]) {
 
 export function addToMap(map: ymaps.Map, placemark: ymaps.Placemark) {
   toRaw(map).geoObjects.add(placemark);
+}
+
+export function calibrateMap(
+  map: ymaps.Map,
+  placemark: {
+    id: number;
+    latitude: number;
+    longitude: number;
+  }
+) {
+  toRaw(map).panTo([placemark.latitude, placemark.longitude], {
+    flying: true,
+    duration: 1000,
+  });
 }

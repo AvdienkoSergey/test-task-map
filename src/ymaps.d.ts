@@ -6,10 +6,10 @@ interface YandexMaps {
   ready(callback: () => void): void;
   Map: new (
     container: string,
-    options: { center: [number, number]; zoom: number; controls: unknown[] }
+    options: { center: number[]; zoom: number; controls: unknown[] }
   ) => ymaps.Map;
   Placemark: new (
-    coordinates: [number, number],
+    coordinates: number[],
     properties?: ymaps.PlacemarkProperties,
     options?: ymaps.PlacemarkOptions
   ) => ymaps.Placemark;
@@ -22,7 +22,11 @@ declare namespace ymaps {
   interface Map {
     geoObjects: GeoObjectCollection;
     setCenter(center: [number, number]): void;
-    panTo(coordinates: number[], { flying, duration }: { flying: boolean; duration: number }): void
+    setType(preset: string): void;
+    panTo(
+      coordinates: number[],
+      { flying, duration }: { flying: boolean; duration: number }
+    ): void;
     events: EventManager;
   }
 
@@ -44,6 +48,9 @@ declare namespace ymaps {
     };
     options: {
       set(option: string, value: unknown): void;
+    };
+    balloon: {
+      open(): void;
     };
     events: EventManager; // Чтобы можно было добавлять и удалять обработчики событий
   }

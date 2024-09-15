@@ -66,4 +66,17 @@ export default {
       text: "Example:",
     },
   },
+  editMode: {
+    notification: "Editing mode",
+  },
+  placemarkers: {
+    list: {
+      title: "Markers",
+    },
+  },
+  notification: {
+    addListener:
+      "You have entered edit mode. Click on the map to add a marker.",
+    errorAddPlacemarker: "Cannot add the required marker.",
+  },
 };

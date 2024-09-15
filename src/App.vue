@@ -1,6 +1,9 @@
 <template>
   <v-app>
-    <base-header></base-header>
+    <base-header />
+    <progress-circular />
+    <notification-about-work-algorithm />
+    <notification-user />
     <!-- <v-btn @click="toggleTheme" style="margin-top: 200px">
       <base-icon :name="'menu'" />
       toggle theme
@@ -16,6 +19,9 @@ import { onMounted } from "vue";
 import { useTheme, useDisplay } from "vuetify";
 // import BaseIcon from "@/components/BaseIcon.vue";
 import BaseHeader from "@/components/BaseHeader.vue";
+import ProgressCircular from "@/components/TheProgressCircular.vue";
+import NotificationAboutWorkAlgorithm from "@/components/TheNotificationAboutWorkAlgorithm.vue";
+import NotificationUser from "@/components/TheNotificationUser.vue";
 
 // const theme = useTheme();
 const { mobile } = useDisplay();

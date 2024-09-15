@@ -66,4 +66,17 @@ export default {
       text: "Пример:",
     },
   },
+  editMode: {
+    notification: "Pежим редактирования",
+  },
+  placemarkers: {
+    list: {
+      title: "Маркеры",
+    },
+  },
+  notification: {
+    addListener:
+      "Вы вошли в режим редактирования. Клик по карте добавит маркер",
+    errorAddPlacemarker: "Нельзя добавить треубемый маркер",
+  },
 };

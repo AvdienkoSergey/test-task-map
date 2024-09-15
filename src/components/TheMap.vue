@@ -1,59 +1,66 @@
 <template>
+  <transition name="fade" mode="out-in">
+    <v-skeleton-loader
+      v-if="!showMap"
+      style="height: calc(100svh - 64px); width: 100svw; box-sizing: border-box"
+    ></v-skeleton-loader>
+  </transition>
   <div
     id="map"
     style="height: calc(100svh - 64px); width: 100svw; box-sizing: border-box"
+    v-show="showMap"
   ></div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, nextTick } from "vue";
+import { onMounted, computed } from "vue";
 import { asyncGetCurrentCoordinates } from "@/services/web-geolocation-api";
+import { DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from "@/constants";
 import { useStore } from "vuex";
-import { createPlacemark } from "@/services/yandex-map-api";
+import { initMap$ } from "@/events/map";
+import { drawMap } from "@/services/yandex-map-api";
+import { Observer } from "@/events/_observer";
+
 const store = useStore();
 
-function initMap(lat: number, lon: number) {
-  ymaps.ready(() => {
-    nextTick(() => {
-      const map = new ymaps.Map("map", {
-        center: [lat, lon],
-        zoom: 14,
-        controls: ["zoomControl"],
-      });
-      // const cursor = map.cursors.push("pointer");
-      // cursor.setKey("pointer");
-      store.commit("createMapInstance", map);
-      //   const id = 0;
-      //   const latitude = 43.226259;
-      //   const longitude = 76.901672;
-      //   const placemark = new ymaps.Placemark(
-      //     [latitude, longitude],
-      //     {
-      //       // Данные для балуна и хинта
-      //       balloonContent: `<div>Place ID: ${id}</div><div>Coordinates: ${latitude}, ${longitude}</div>`,
-      //       hintContent: `ID: ${id} | Coordinates: ${latitude}, ${longitude}`,
-      //     },
-      //     {
-      //       preset: "islands#icon",
-      //       iconColor: "#0095b6",
-      //     }
-      //   );
-      //   map.geoObjects.add(placemark);
-      //   map.panTo([latitude, longitude], {
-      //     flying: true,
-      //     duration: 500,
-      //   });
-    });
-  });
+const showMap = computed(() => store.getters.isDownloaded);
+
+function saveInstanceMap(map: unknown) {
+  store.commit("createMapInstance", map);
+  return;
+}
+
+function fillUpMap() {
+  store.dispatch("downloadPlaceMarkers");
+}
+
+function getMap(coordinates: number[]) {
+  initMap$.subscribe(new Observer(fillUpMap));
+  initMap$.subscribe(new Observer(saveInstanceMap));
+  initMap$.on(drawMap(coordinates));
 }
 
 onMounted(() => {
-  asyncGetCurrentCoordinates().then((coordinates: number[]) => {
-    if (!document.getElementById("map")) {
-      throw new Error("Not found map container");
-    }
-    const [latitude, longitude] = coordinates;
-    initMap(latitude, longitude);
-  });
+  asyncGetCurrentCoordinates()
+    .then((coordinates: number[]) => {
+      if (!document.getElementById("map")) {
+        throw new Error("Not found map container");
+      }
+      if (!coordinates || !Array.isArray(coordinates)) {
+        throw new Error("The problem with determining coordinates");
+      }
+      getMap(coordinates);
+    })
+    .catch(() => getMap([DEFAULT_LATITUDE, DEFAULT_LONGITUDE]));
 });
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease-in-out;
+}
+.fade-enter, .fade-leave-to /* или .fade-leave-active в зависимости от версии Vue */ {
+  opacity: 0;
+}
+</style>

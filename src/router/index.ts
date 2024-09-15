@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 import AboutTaskView from "@/views/AboutTaskView.vue";
 import { Observer } from "@/events/_observer";
-import { wentToAboutTaskPage$, wentToMapPage$ } from "@/events/changingPages";
+import { wentToAboutTaskPage$, wentToMapPage$ } from "@/events/page";
 import { asyncAppendScript } from "@/services/yandex-map-api";
 
 const AboutTask = {

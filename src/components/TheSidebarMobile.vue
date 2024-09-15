@@ -1,15 +1,14 @@
 <template>
-  <v-navigation-drawer v-model="state.drawer" app temporary width="270">
+  <v-navigation-drawer v-model="state.drawer" app temporary width="320">
     <div style="padding: 8px">
-      <text-title :titleType="4" :titleText="'Маркеры'" />
+      <text-title
+        :titleType="4"
+        :titleText="'$vuetify.placemarkers.list.title'"
+      />
       <v-list lines="one">
         <template v-if="items.length">
           <v-list-item v-for="item in items" :key="item.id">
-            <v-card
-              prepend-icon="mdi-pin"
-              :variant="'outlined'"
-              :title="`ID: ${item.id}`"
-            >
+            <v-card :variant="'outlined'" :title="`ID: ${item.id}`">
               <template v-slot:append>
                 <v-btn
                   color="teal"
@@ -19,8 +18,8 @@
                 ></v-btn>
               </template>
               <template v-slot:subtitle>
-                <p>latitude: {{ parseFloat(item.latitude.toFixed(2)) }}</p>
-                <p>longitude: {{ parseFloat(item.longitude.toFixed(2)) }}</p>
+                <p>latitude: {{ parseFloat(item.latitude.toFixed(4)) }}</p>
+                <p>longitude: {{ parseFloat(item.longitude.toFixed(4)) }}</p>
               </template>
             </v-card>
           </v-list-item>
@@ -45,7 +44,7 @@ const state = reactive({
 const items = computed(() => store.getters.placemarkers);
 function showOnMap(item: { id: number; latitude: number; longitude: number }) {
   state.drawer = false;
-  store.commit("showOnMap", item);
+  store.dispatch("showPlacemarker", item);
 }
 </script>
 

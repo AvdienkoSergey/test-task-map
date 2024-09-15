@@ -65,4 +65,16 @@ export default {
       text: "Пример:",
     },
   },
+  editMode: {
+    notification: "Режим уређивања",
+  },
+  placemarkers: {
+    list: {
+      title: "Ознаке",
+    },
+  },
+  notification: {
+    addListener: "Ушли сте у режим уређивања. Клик на карту ће додати маркер.",
+    errorAddPlacemarker: "Није могуће додати тражени маркер.",
+  },
 };
