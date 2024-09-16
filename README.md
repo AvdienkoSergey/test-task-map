@@ -31,3 +31,5 @@ docker run -d -p 80:80 --name app test-task-map
 - Реализация всех ключевых действий через Observer pattern
 - Добавить режим namespace для модулей Vuex
 - Добавить e2e тесты
+- Проверить реализацию класса LeafletMap, через подмену класса YandexMap (завершение рефакторинга)
+- удалить тестовую страницу map-test

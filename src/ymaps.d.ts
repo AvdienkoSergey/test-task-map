@@ -21,7 +21,7 @@ declare const ymaps: YandexMaps;
 declare namespace ymaps {
   interface Map {
     geoObjects: GeoObjectCollection;
-    setCenter(center: [number, number]): void;
+    setCenter(center: number[]): void;
     setType(preset: string): void;
     panTo(
       coordinates: number[],
@@ -36,11 +36,12 @@ declare namespace ymaps {
     };
     add(object: Placemark): void;
     removeAll(): void;
+    remove: (obj: Placemark) => void;
   }
 
   interface Placemark {
     geometry: {
-      getCoordinates(): [number, number];
+      getCoordinates(): number[];
     };
     properties: {
       set(property: string, value: unknown): void;
@@ -57,13 +58,14 @@ declare namespace ymaps {
 
   interface GeoObject {
     geometry: {
-      getCoordinates(): [number, number];
+      getCoordinates(): number[];
     };
   }
 
   interface GeocodeResponse {
     geoObjects: {
       get(index: number): GeoObject;
+      remove: (obj: object) => void;
     };
   }
 
