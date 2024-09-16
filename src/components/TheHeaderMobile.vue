@@ -18,7 +18,15 @@
 
 <script setup lang="ts">
 import TabsLink from "@/components/TheTabsLink.vue";
-import { defineProps, defineEmits, reactive } from "vue";
+import {
+  defineProps,
+  defineEmits,
+  reactive,
+  onMounted,
+  onUnmounted,
+} from "vue";
+import { editMap$ } from "@/events/map";
+import { Observer } from "@/events/_observer";
 import { useLocale } from "vuetify";
 const { t } = useLocale();
 defineProps({
@@ -34,7 +42,18 @@ const state = reactive({
 function toggleNavigation() {
   state.navigation = !state.navigation;
 }
+function closeNavigation() {
+  state.navigation = false;
+}
 function toogleDrordown() {
   emits("toogleDrordown");
 }
+
+onMounted(() => {
+  editMap$.subscribe(new Observer(closeNavigation));
+});
+
+onUnmounted(() => {
+  editMap$.unsubscribe(new Observer(closeNavigation));
+});
 </script>

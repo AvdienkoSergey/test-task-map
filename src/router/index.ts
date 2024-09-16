@@ -27,7 +27,9 @@ const router = createRouter({
 });
 
 function cteateLog(name: string) {
-  const printPageName = () => console.log(`Routing to page: ${name}`);
+  const printPageName = () => {
+    // console.log(`Routing to page: ${name}`);
+  };
   return printPageName;
 }
 

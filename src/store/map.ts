@@ -28,13 +28,7 @@ export const mapModule = {
   state: () => ({
     map: {
       instance: null,
-      placemarkers: [
-        {
-          id: 0,
-          latitude: 43.226259,
-          longitude: 76.901672,
-        },
-      ],
+      placemarkers: [],
     },
   }),
   getters: {
@@ -82,12 +76,14 @@ export const mapModule = {
       const map = state.map.instance;
       calibrateMap(map, placemark);
     },
+    clearPlacemarkersList(state: IMapState) {
+      state.map.placemarkers = [];
+    },
   },
   actions: {
     addListener({ commit, dispatch }: ActionContext<IMapState, unknown>) {
       commit("startEdit");
       commit("addListenerForMap");
-      dispatch("displaySuccess", "$vuetify.notification.addListener");
       function addPlacemark(placemark: IPlacemark | unknown) {
         if (!placemark) {
           return dispatch(
@@ -107,6 +103,7 @@ export const mapModule = {
       commit("startLoading");
       getPLacemarkersList()
         .then((placemarkers: IPlacemark[]) => {
+          commit("clearPlacemarkersList");
           placemarkers.forEach((placemark: IPlacemark) => {
             commit("addPlacemark", placemark);
             commit("drawPlacemark", placemark);

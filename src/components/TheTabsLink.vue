@@ -1,22 +1,22 @@
 <template>
-  <v-tabs bg-color="white" v-model="state.tab">
+  <v-tabs v-model="state.tab">
     <router-link
       v-for="item in items"
       :key="item.value"
       :to="item.path"
       class="custom-router-link"
     >
-      <v-tab :value="item.value">
-        {{ t(`${item.name}`) }}
-      </v-tab>
+      <v-tab :value="item.value"> {{ t(`${item.name}`) }} </v-tab>
     </router-link>
   </v-tabs>
 </template>
 
 <script setup lang="ts">
-import { reactive } from "vue";
+import { reactive, computed, watchEffect } from "vue";
 import { useLocale } from "vuetify";
 import { useRoute } from "vue-router";
+
+const route = useRoute();
 const { t } = useLocale();
 const items = [
   {
@@ -31,7 +31,15 @@ const items = [
   },
 ];
 const state = reactive({
-  tab: items.find((item) => item.path === useRoute().path)?.value ?? "task",
+  tab: "task",
+});
+
+const currentPath = computed(() => (route?.path === "/" ? "task" : "map"));
+
+watchEffect(() => {
+  if (state.tab != currentPath.value) {
+    state.tab = currentPath.value;
+  }
 });
 </script>
 

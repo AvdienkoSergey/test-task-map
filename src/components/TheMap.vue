@@ -2,18 +2,19 @@
   <transition name="fade" mode="out-in">
     <v-skeleton-loader
       v-if="!showMap"
-      style="height: calc(100svh - 64px); width: 100svw; box-sizing: border-box"
+      :class="{ 'wrapper-mobile': isMobile, 'wrapper-desktop': isDesktop }"
     ></v-skeleton-loader>
   </transition>
   <div
     id="map"
-    style="height: calc(100svh - 64px); width: 100svw; box-sizing: border-box"
+    :class="{ 'wrapper-mobile': isMobile, 'wrapper-desktop': isDesktop }"
     v-show="showMap"
   ></div>
 </template>
 
 <script lang="ts" setup>
 import { onMounted, computed } from "vue";
+import { useDisplay } from "vuetify";
 import { asyncGetCurrentCoordinates } from "@/services/web-geolocation-api";
 import { DEFAULT_LATITUDE, DEFAULT_LONGITUDE } from "@/constants";
 import { useStore } from "vuex";
@@ -22,8 +23,11 @@ import { drawMap } from "@/services/yandex-map-api";
 import { Observer } from "@/events/_observer";
 
 const store = useStore();
+const { smAndDown, mdAndUp } = useDisplay();
 
 const showMap = computed(() => store.getters.isDownloaded);
+const isMobile = computed(() => smAndDown.value);
+const isDesktop = computed(() => mdAndUp.value);
 
 function saveInstanceMap(map: unknown) {
   store.commit("createMapInstance", map);
@@ -62,5 +66,15 @@ onMounted(() => {
 }
 .fade-enter, .fade-leave-to /* или .fade-leave-active в зависимости от версии Vue */ {
   opacity: 0;
+}
+.wrapper-mobile {
+  height: calc(100svh - 64px);
+  width: 100svw;
+  box-sizing: border-box;
+}
+.wrapper-desktop {
+  height: calc(100svh - 112px);
+  width: 100svw;
+  box-sizing: border-box;
 }
 </style>

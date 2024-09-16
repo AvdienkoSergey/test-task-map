@@ -84,13 +84,27 @@
       :wordsToHighlight="['Напоминание:']"
     />
     <text-paragraph :text="'$vuetify.article.section_5.text'" />
-    <v-img aspect-ratio="16/9" cover src="/image.png"></v-img>
+    <v-img v-if="isMobile" aspect-ratio="16/9" cover src="/image.png"></v-img>
+    <v-img
+      v-if="isDesktop"
+      aspect-ratio="16/9"
+      cover
+      src="/image.png"
+      width="400"
+    ></v-img>
   </article>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
+import { useDisplay } from "vuetify";
 import TextTitle from "@/components/TextTitle.vue";
 import TextParagraph from "@/components/TextParagraph.vue";
+
+const { smAndDown, mdAndUp } = useDisplay();
+
+const isMobile = computed(() => smAndDown.value);
+const isDesktop = computed(() => mdAndUp.value);
 </script>
 
 <style scoped>

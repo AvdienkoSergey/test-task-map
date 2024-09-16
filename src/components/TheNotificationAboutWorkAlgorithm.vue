@@ -1,7 +1,10 @@
 <template>
   <v-chip
     closable
-    class="fixed-indicator"
+    :class="{
+      'fixed-indicator-mobile': isMobile,
+      'fixed-indicator-desktop': isDesktop,
+    }"
     v-if="working"
     @click:close="handleClose"
   >
@@ -13,6 +16,12 @@
 import { computed } from "vue";
 import { useStore } from "vuex";
 import { useLocale } from "vuetify";
+import { viewPlacemarks$ } from "@/events/map";
+import { useDisplay } from "vuetify";
+const { smAndDown, mdAndUp } = useDisplay();
+
+const isMobile = computed(() => smAndDown.value);
+const isDesktop = computed(() => mdAndUp.value);
 
 const store = useStore();
 const { t } = useLocale();
@@ -20,15 +29,21 @@ const { t } = useLocale();
 const working = computed(() => store.getters.isEditMode);
 
 function handleClose() {
-  store.dispatch("removeEventListener");
+  viewPlacemarks$.on(Promise.resolve(store.dispatch("removeListener")));
 }
 </script>
 
 <style scoped>
-.fixed-indicator {
+.fixed-indicator-mobile {
   position: fixed;
   top: 80px;
   left: 8px;
+  z-index: 100000; /* Чтобы индикатор был поверх всего */
+}
+.fixed-indicator-desktop {
+  position: fixed;
+  top: 128px;
+  left: 408px;
   z-index: 100000; /* Чтобы индикатор был поверх всего */
 }
 </style>

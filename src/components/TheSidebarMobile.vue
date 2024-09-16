@@ -28,7 +28,7 @@
       </v-list>
     </div>
   </v-navigation-drawer>
-  <button-sidebar-open @openSidebar="state.drawer = true" />
+  <button-sidebar-open @openSidebar="openSidebar" />
 </template>
 
 <script lang="ts" setup>
@@ -36,12 +36,19 @@ import { reactive, computed } from "vue";
 import ButtonSidebarOpen from "@/components/TheButtonSidebarOpen.vue";
 import TextTitle from "@/components/TextTitle.vue";
 import { useStore } from "vuex";
+import { viewPlacemarks$ } from "@/events/map";
 const store = useStore();
 
 const state = reactive({
   drawer: false,
 });
 const items = computed(() => store.getters.placemarkers);
+
+function openSidebar() {
+  state.drawer = true;
+  viewPlacemarks$.on(Promise.resolve(store.dispatch("removeListener")));
+}
+
 function showOnMap(item: { id: number; latitude: number; longitude: number }) {
   state.drawer = false;
   store.dispatch("showPlacemarker", item);

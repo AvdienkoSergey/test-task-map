@@ -12,7 +12,9 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
+import { computed, onUnmounted } from "vue";
+import { editMap$, viewPlacemarks$ } from "@/events/map";
+
 import { useStore } from "vuex";
 const store = useStore();
 
@@ -22,9 +24,13 @@ const buttonIcon = computed(() => (working.value ? "mdi-minus" : "mdi-plus"));
 
 function handleClick() {
   working.value
-    ? store.dispatch("removeListener")
-    : store.dispatch("addListener");
+    ? viewPlacemarks$.on(Promise.resolve(store.dispatch("removeListener")))
+    : editMap$.on(Promise.resolve(store.dispatch("addListener")));
 }
+
+onUnmounted(() => {
+  viewPlacemarks$.on(Promise.resolve(store.dispatch("removeListener")));
+});
 </script>
 
 <style scoped>

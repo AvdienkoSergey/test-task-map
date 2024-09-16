@@ -1,35 +1,33 @@
-# project-with-tests-map
-
-## Project setup
+### Порядок установки
 
 ```
-npm install
+npm install --legacy-peer-deps
 ```
 
-### Compiles and hot-reloads for development
+### Порядок запуска в dev режиме
 
 ```
 npm run serve
 ```
 
-### Compiles and minifies for production
+### Порядок исправления ошибок выявленных Prettier
 
 ```
-npm run build
+npm run prettier:doctor
 ```
 
-### Run your unit tests
+### Порядок сборки Docker и его последующего запуск
 
 ```
-npm run test:unit
+docker build -t test-task-map .
+docker run -d -p 80:80 --name app test-task-map
 ```
 
-### Lints and fixes files
+Внимание! Проверьте что 80 порт не занят. Напрмер, службой IIS на Windows
 
-```
-npm run lint
-```
+### Технический долг по заданию
 
-### Customize configuration
-
-See [Configuration Reference](https://cli.vuejs.org/config/).
+- Добавление кнопки переключения тема Светлая/Темная
+- Реализация всех ключевых действий через Observer pattern
+- Добавить режим namespace для модулей Vuex
+- Добавить e2e тесты
