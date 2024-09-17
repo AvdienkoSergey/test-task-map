@@ -1,7 +1,7 @@
-import { _WorldMap } from "@/entities/Map";
+import { YandexMap } from "@/entities/MapYandex";
 
-describe("_WorldMap", () => {
-  let yandexMap: _WorldMap;
+describe("WorldMap in YandexMap class implementation", () => {
+  let worldMap: YandexMap;
   let mockYmaps: any;
 
   beforeEach(() => {
@@ -19,12 +19,13 @@ describe("_WorldMap", () => {
           remove: jest.fn(),
         },
       })),
+      Placemark: jest.fn(() => ({})),
     };
 
     // @ts-ignore
     (global as any).ymaps = mockYmaps;
 
-    yandexMap = new _WorldMap();
+    worldMap = new YandexMap();
   });
 
   afterEach(() => {
@@ -39,54 +40,56 @@ describe("_WorldMap", () => {
       controls: ["zoomControl"],
     };
 
-    await yandexMap.initialization(config);
+    await worldMap.initialization(config);
 
     expect(mockYmaps.Map).toHaveBeenCalledWith("map", {
       center: [55.751244, 37.618423],
       zoom: 10,
       controls: ["zoomControl"],
     });
-    expect(yandexMap["map"]).toBeDefined();
+    expect(worldMap["map"]).toBeDefined();
   });
 
   test("should set center of the map", () => {
     const mockSetCenter = jest.fn();
-    yandexMap["map"] = { setCenter: mockSetCenter } as any; // Мокируем карту
-
     const coordinates = [55.751244, 37.618423];
-    yandexMap.displayOnTheScreen(coordinates);
+
+    worldMap["map"] = { setCenter: mockSetCenter } as any;
+    worldMap["center"] = coordinates as any;
+
+    worldMap.displayOnTheScreen();
 
     expect(mockSetCenter).toHaveBeenCalledWith(coordinates);
   });
 
   test("should enable event tracking", () => {
     const mockAddEvent = jest.fn();
-    yandexMap["map"] = { events: { add: mockAddEvent } } as any; // Мокируем карту
+    worldMap["map"] = { events: { add: mockAddEvent } } as any;
 
     const mockEventCallback = jest.fn();
-    yandexMap.createTrackingEvent(mockEventCallback);
-    yandexMap.enableEventTracking();
+    worldMap.createTrackingEvent(mockEventCallback);
+    worldMap.enableEventTracking();
 
     expect(mockAddEvent).toHaveBeenCalledWith("click", mockEventCallback);
   });
 
   test("should disable event tracking", () => {
     const mockRemoveEvent = jest.fn();
-    yandexMap["map"] = { events: { remove: mockRemoveEvent } } as any; // Мокируем карту
+    worldMap["map"] = { events: { remove: mockRemoveEvent } } as any;
 
     const mockEventCallback = jest.fn();
-    yandexMap.createTrackingEvent(mockEventCallback);
-    yandexMap.disableEventTracking();
+    worldMap.createTrackingEvent(mockEventCallback);
+    worldMap.disableEventTracking();
 
     expect(mockRemoveEvent).toHaveBeenCalledWith("click", mockEventCallback);
   });
 
   test("should pan around the map", async () => {
     const mockPanTo = jest.fn();
-    yandexMap["map"] = { panTo: mockPanTo } as any; // Мокируем карту
+    worldMap["map"] = { panTo: mockPanTo } as any;
 
     const coordinates = [55.751244, 37.618423];
-    await yandexMap.moveAroundTheMap(coordinates);
+    await worldMap.moveAroundTheMap(coordinates);
 
     expect(mockPanTo).toHaveBeenCalledWith(coordinates, {
       flying: false,
@@ -96,31 +99,36 @@ describe("_WorldMap", () => {
 
   test("should add all objects to the map", () => {
     const mockAddObject = jest.fn();
-    yandexMap["map"] = { geoObjects: { add: mockAddObject } } as any; // Мокируем карту
+    worldMap["map"] = { geoObjects: { add: mockAddObject } } as any;
 
     const objects = [{}, {}];
-    yandexMap.putAllObjects(objects as any[]);
+    worldMap.putAllObjects(objects as any[]);
 
     expect(mockAddObject).toHaveBeenCalledTimes(objects.length);
   });
 
   test("should remove all objects from the map", () => {
     const mockRemoveObject = jest.fn();
-    yandexMap["map"] = { geoObjects: { remove: mockRemoveObject } } as any; // Мокируем карту
+    worldMap["map"] = { geoObjects: { remove: mockRemoveObject } } as any;
 
     const objects = [{}, {}];
-    yandexMap.deleteAllObjects(objects as any[]);
+    worldMap.deleteAllObjects(objects as any[]);
 
     expect(mockRemoveObject).toHaveBeenCalledTimes(objects.length);
   });
 
   test("should add one object to the map", () => {
     const mockAddObject = jest.fn();
-    yandexMap["map"] = { geoObjects: { add: mockAddObject } } as any; // Мокируем карту
+    worldMap["map"] = { geoObjects: { add: mockAddObject } } as any;
 
-    const object = {};
-    yandexMap.putOneObject(object as any);
+    const object = {
+      id: 1,
+      latitude: 55.751244,
+      longitude: 37.618423,
+    };
 
-    expect(mockAddObject).toHaveBeenCalledWith(object);
+    worldMap.putOneObject(object as any);
+
+    expect(mockAddObject).toHaveBeenCalled();
   });
 });

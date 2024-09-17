@@ -18,17 +18,8 @@ const Map = {
   component: () =>
     import(/* webpackChunkName: "about" */ "@/views/MapView.vue"),
 };
-const MapTest = {
-  path: "/map-test",
-  name: "map-test",
-  // route level code-splitting
-  // this generates a separate chunk (about.[hash].js) for this route
-  // which is lazy-loaded when the route is visited.
-  component: () =>
-    import(/* webpackChunkName: "about" */ "@/views/TestView.vue"),
-};
 
-const routes: Array<RouteRecordRaw> = [AboutTask, Map, MapTest];
+const routes: Array<RouteRecordRaw> = [AboutTask, Map];
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
@@ -48,16 +39,12 @@ wentToAboutTaskPage$.subscribe(visitAboutTaskPage);
 wentToMapPage$.subscribe(visitMapPage);
 
 router.beforeEach((to) => {
-  console.log(to.name);
   switch (to.name) {
     case AboutTask.name:
       wentToAboutTaskPage$.on(Promise.resolve());
       break;
     case Map.name:
       wentToMapPage$.on(Promise.resolve(WorldMap.downloadDependencies()));
-      break;
-    case MapTest.name:
-      console.log(MapTest.name);
       break;
 
     default:

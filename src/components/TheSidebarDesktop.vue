@@ -51,5 +51,6 @@ function showOnMap(item: { id: number; latitude: number; longitude: number }) {
   left: 0;
   background-color: white;
   overflow: auto;
+  z-index: 100000;
 }
 </style>

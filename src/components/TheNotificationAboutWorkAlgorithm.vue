@@ -29,7 +29,7 @@ const { t } = useLocale();
 const working = computed(() => store.getters.isEditMode);
 
 function handleClose() {
-  viewPlacemarks$.on(Promise.resolve(store.dispatch("removeListener")));
+  viewPlacemarks$.on(Promise.resolve(store.dispatch("turnOnTheViewingMode")));
 }
 </script>
 

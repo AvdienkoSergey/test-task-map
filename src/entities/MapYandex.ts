@@ -7,6 +7,7 @@ class YandexMap extends WorldMapAbstract {
   private readonly api_key = "85d9555e-d585-4ec8-a35c-5ea96c912f3f";
   private readonly url = `https://api-maps.yandex.ru/2.1/?apikey=${this.api_key}&lang=ru_RU`;
   private readonly guid = "yandex-maps-script";
+  private center: number[] = [];
 
   constructor() {
     super();
@@ -16,7 +17,7 @@ class YandexMap extends WorldMapAbstract {
     return new Promise((resolve, reject) => {
       const existingScript = document.getElementById(this.guid);
       if (existingScript) {
-        resolve(true);
+        return resolve(true);
       }
       const script = document.createElement("script");
       script.id = this.guid;
@@ -35,6 +36,7 @@ class YandexMap extends WorldMapAbstract {
       zoom: number;
       controls: string[];
     };
+    this.center = center;
     return new Promise<void>((resolve, reject) => {
       try {
         ymaps.ready(() => {
@@ -52,9 +54,9 @@ class YandexMap extends WorldMapAbstract {
     });
   }
 
-  public displayOnTheScreen<T>(coordinates: T): void {
-    if (Array.isArray(coordinates) && this.map) {
-      this.map.setCenter(coordinates as number[]);
+  public displayOnTheScreen(): void {
+    if (this.map) {
+      this.map.setCenter(this.center as number[]);
     }
   }
 
@@ -71,6 +73,7 @@ class YandexMap extends WorldMapAbstract {
   }
 
   public createTrackingEvent<T>(event: T): void {
+    if (this.trackingEvent) return;
     this.trackingEvent = event as unknown as (event: unknown) => void;
   }
 
@@ -107,8 +110,48 @@ class YandexMap extends WorldMapAbstract {
 
   public putOneObject<T>(object: T): void {
     if (this.map) {
-      this.map?.geoObjects.add(object as unknown as ymaps.Placemark);
+      this.map.geoObjects.add(
+        this.createPlacemark(
+          object as unknown as {
+            id: number;
+            latitude: number;
+            longitude: number;
+          }
+        )
+      );
     }
+  }
+
+  private createPlacemark({
+    id,
+    latitude,
+    longitude,
+  }: {
+    id: number;
+    latitude: number;
+    longitude: number;
+  }) {
+    const placemark = new ymaps.Placemark(
+      [latitude, longitude],
+      {
+        // Данные для балуна и хинта
+        balloonContent: `<div>Place ID: ${id}</div><div>Coordinates: ${parseFloat(
+          latitude.toFixed(4)
+        )}, ${parseFloat(latitude.toFixed(4))}</div>`,
+        hintContent: `ID: ${id} | Coordinates: ${parseFloat(
+          latitude.toFixed(4)
+        )}, ${parseFloat(latitude.toFixed(4))}`,
+      },
+      {
+        preset: "islands#icon",
+        iconColor: "#0095b6",
+        hideIconOnBalloonOpen: false,
+        balloonOffset: [0, -40],
+      }
+    );
+
+    // Возвращаем созданный placemark для дальнейшего использования
+    return placemark;
   }
 }
 

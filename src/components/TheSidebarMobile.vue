@@ -46,7 +46,7 @@ const items = computed(() => store.getters.placemarkers);
 
 function openSidebar() {
   state.drawer = true;
-  viewPlacemarks$.on(Promise.resolve(store.dispatch("removeListener")));
+  viewPlacemarks$.on(Promise.resolve(store.dispatch("turnOnTheViewingMode")));
 }
 
 function showOnMap(item: { id: number; latitude: number; longitude: number }) {

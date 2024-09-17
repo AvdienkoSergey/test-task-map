@@ -1,15 +1,6 @@
 import { getPLacemarkersList, savePlaceMark } from "@/services/backend-api";
-import {
-  createPlacemark,
-  addToMap,
-  moveToCoordinates,
-  addClickListener,
-  removeClickListener,
-  calibrateMap,
-} from "@/services/yandex-map-api";
 import { ActionContext } from "vuex";
-import { clickMap$ } from "@/events/map";
-import { Observer } from "@/events/_observer";
+import { WorldMap } from "@/entities/Map";
 
 interface IPlacemark {
   id: number;
@@ -18,86 +9,79 @@ interface IPlacemark {
 }
 
 interface IMapState {
-  map: {
-    instance: ymaps.Map | null;
-    placemarkers: IPlacemark[];
+  placemarkers: IPlacemark[];
+}
+
+interface YandexMapClickEvent {
+  get: (key: string) => [number, number] | undefined;
+}
+
+interface LeafletClickEvent {
+  latlng: {
+    lat: number;
+    lng: number;
   };
 }
 
 export const mapModule = {
   state: () => ({
-    map: {
-      instance: null,
-      placemarkers: [],
-    },
+    placemarkers: [],
   }),
   getters: {
-    mapInstance(state: IMapState) {
-      return state.map.instance;
-    },
     placemarkers(state: IMapState) {
-      return state.map.placemarkers;
+      return state.placemarkers;
     },
   },
   mutations: {
-    createMapInstance(state: IMapState, instance: ymaps.Map) {
-      state.map.instance = instance;
-    },
-    addListenerForMap(state: IMapState) {
-      if (!state.map.instance) return;
-      const map = state.map.instance;
-      addClickListener(map);
-    },
-    removeListenerForMap(state: IMapState) {
-      if (!state.map.instance) return;
-      const map = state.map.instance;
-      removeClickListener(map);
-    },
-    drawPlacemark(state: IMapState, placemark: IPlacemark) {
-      if (!state.map.instance) return;
-      const map = state.map.instance;
-      moveToCoordinates(map, [placemark.latitude, placemark.longitude]).then(
-        () => addToMap(map, createPlacemark(placemark))
-      );
-    },
     addPlacemark(state: IMapState, placemark: IPlacemark) {
       if (
-        state.map.placemarkers.find((_placemark: IPlacemark) => {
+        state.placemarkers.find((_placemark: IPlacemark) => {
           placemark.latitude === _placemark.latitude &&
             placemark.longitude === _placemark.longitude;
         })
       ) {
         return;
       }
-      state.map.placemarkers.push(placemark);
-    },
-    calibrateMap(state: IMapState, placemark: IPlacemark) {
-      if (!state.map.instance) return;
-      const map = state.map.instance;
-      calibrateMap(map, placemark);
+      state.placemarkers.push(placemark);
     },
     clearPlacemarkersList(state: IMapState) {
-      state.map.placemarkers = [];
+      state.placemarkers = [];
     },
   },
   actions: {
-    addListener({ commit, dispatch }: ActionContext<IMapState, unknown>) {
+    turnOnTheOperatingMode({
+      dispatch,
+      commit,
+    }: ActionContext<IMapState, unknown>) {
       commit("startEdit");
-      commit("addListenerForMap");
-      function addPlacemark(placemark: IPlacemark | unknown) {
-        if (!placemark) {
-          return dispatch(
-            "displayError",
-            "$vuetify.notification.errorAddPlacemarker"
-          );
+      function onMapClick(event: YandexMapClickEvent | LeafletClickEvent) {
+        try {
+          let latitude: number;
+          let longitude: number;
+          if ("get" in event) {
+            const coordinates = event.get("coords");
+            if (!coordinates) throw new Error("Not gound coordinates");
+            latitude = coordinates[0];
+            longitude = coordinates[1];
+          } else {
+            latitude = event.latlng.lat;
+            longitude = event.latlng.lng;
+          }
+          dispatch("savePlaceMark", {
+            id: Date.now(),
+            latitude,
+            longitude,
+          });
+        } catch (error) {
+          dispatch("displayError", "$vuetify.notification.errorAddPlacemarker");
         }
-        dispatch("savePlaceMark", placemark);
       }
-      clickMap$.subscribe(new Observer(addPlacemark));
+      WorldMap.createTrackingEvent(onMapClick);
+      WorldMap.enableEventTracking();
     },
-    removeListener({ commit }: ActionContext<IMapState, unknown>) {
+    turnOnTheViewingMode({ commit }: ActionContext<IMapState, unknown>) {
       commit("stopEdit");
-      commit("removeListenerForMap");
+      WorldMap.disableEventTracking();
     },
     downloadPlaceMarkers({ commit }: ActionContext<IMapState, unknown>) {
       commit("startLoading");
@@ -106,7 +90,7 @@ export const mapModule = {
           commit("clearPlacemarkersList");
           placemarkers.forEach((placemark: IPlacemark) => {
             commit("addPlacemark", placemark);
-            commit("drawPlacemark", placemark);
+            WorldMap.putOneObject(placemark);
           });
           return;
         })
@@ -116,22 +100,27 @@ export const mapModule = {
         });
     },
     savePlaceMark(
-      { commit }: ActionContext<IMapState, unknown>,
+      { dispatch, commit }: ActionContext<IMapState, unknown>,
       placemark: IPlacemark
     ) {
       commit("startLoading");
+      commit("addPlacemark", placemark);
+      WorldMap.putOneObject(placemark);
       savePlaceMark(placemark)
-        .then(() => {
-          commit("addPlacemark", placemark);
-          commit("drawPlacemark", placemark);
-        })
+        .catch(() =>
+          dispatch("displayError", "$vuetify.notification.errorAddPlacemarker")
+        )
         .finally(() => commit("stopLoading"));
     },
     showPlacemarker(
       { commit }: ActionContext<IMapState, unknown>,
       placemark: IPlacemark
     ) {
-      commit("calibrateMap", placemark);
+      commit("startLoading");
+      const { latitude, longitude } = placemark;
+      WorldMap.moveAroundTheMap([latitude, longitude]).finally(() =>
+        commit("stopLoading")
+      );
     },
   },
 };

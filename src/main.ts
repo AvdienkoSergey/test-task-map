@@ -7,6 +7,7 @@ import { loadFonts } from "./plugins/webfontloader";
 
 loadFonts();
 import "@/assets/vuetify-modification.css";
+import "leaflet/dist/leaflet.css";
 
 const app = createApp(App);
 app.use(router).use(store).use(vuetify).mount("#app");

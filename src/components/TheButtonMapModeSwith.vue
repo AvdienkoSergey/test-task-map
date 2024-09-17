@@ -24,12 +24,14 @@ const buttonIcon = computed(() => (working.value ? "mdi-minus" : "mdi-plus"));
 
 function handleClick() {
   working.value
-    ? viewPlacemarks$.on(Promise.resolve(store.dispatch("removeListener")))
-    : editMap$.on(Promise.resolve(store.dispatch("addListener")));
+    ? viewPlacemarks$.on(
+        Promise.resolve(store.dispatch("turnOnTheViewingMode"))
+      )
+    : editMap$.on(Promise.resolve(store.dispatch("turnOnTheOperatingMode")));
 }
 
 onUnmounted(() => {
-  viewPlacemarks$.on(Promise.resolve(store.dispatch("removeListener")));
+  viewPlacemarks$.on(Promise.resolve(store.dispatch("turnOnTheViewingMode")));
 });
 </script>
 

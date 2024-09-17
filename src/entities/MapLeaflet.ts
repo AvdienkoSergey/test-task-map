@@ -5,14 +5,14 @@ import {
   LatLngExpression,
   LeafletEventHandlerFn,
   Layer,
-  LatLngTuple,
+  Icon,
 } from "leaflet";
 import { WorldMapAbstract } from "./MapAbstarct";
-import "leaflet/dist/leaflet.css";
 
 class LeafletMap extends WorldMapAbstract {
-  private map: _LeafletMap | null = null;
+  map: _LeafletMap | null = null;
   private trackingEvent: LeafletEventHandlerFn | undefined;
+  private center: LatLngExpression = [51.505, -0.09];
 
   constructor() {
     super();
@@ -26,18 +26,16 @@ class LeafletMap extends WorldMapAbstract {
   public initialization<T>(config: T): Promise<void> {
     const { containerId, center, zoom } = config as unknown as {
       containerId: string;
-      center: number[] | LatLngExpression;
+      center: LatLngExpression;
       zoom: number;
     };
-    // [51.505, -0.09]
-    // 13
+    this.center = center;
     return new Promise<void>((resolve, reject) => {
       try {
         this.map = new _LeafletMap(containerId).setView(
           center as LatLngExpression,
           zoom
         );
-
         new TileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
           attribution:
             '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -49,9 +47,9 @@ class LeafletMap extends WorldMapAbstract {
     });
   }
 
-  public displayOnTheScreen<T>(coordinates: T): void {
-    if (this.map && Array.isArray(coordinates)) {
-      this.map.setView(coordinates as T as unknown as LatLngTuple);
+  public displayOnTheScreen(): void {
+    if (this.map) {
+      this.map.setView(this.center);
     }
   }
 
@@ -71,8 +69,15 @@ class LeafletMap extends WorldMapAbstract {
     this.trackingEvent = event as unknown as (event: unknown) => void;
   }
 
-  public moveAroundTheMap<T>(coordinates: T): void {
-    this.displayOnTheScreen(coordinates);
+  public moveAroundTheMap<T>(coordinates: T): Promise<void> {
+    if (this.map) {
+      return new Promise((resolve) => {
+        this.map?.setView(coordinates as T as unknown as LatLngExpression);
+        resolve();
+      });
+    } else {
+      return Promise.reject();
+    }
   }
 
   public deleteAllObjects<T>(objects: T[]): void {
@@ -90,20 +95,52 @@ class LeafletMap extends WorldMapAbstract {
   }
 
   public putOneObject<T>(object: T): void {
-    if (
-      this.map &&
-      (object as unknown as { position: LatLngExpression }).position
-    ) {
-      const marker = new Marker(
-        (object as unknown as { position: LatLngExpression }).position
-      );
-      if ((object as unknown as { name: string }).name) {
-        marker.bindPopup(
-          `<b>${(object as unknown as { name: string }).name}</b>`
-        );
-      }
-      marker.addTo(this.map);
+    if (this.map) {
+      this.createMarker(
+        object as T as unknown as {
+          id: number;
+          latitude: number;
+          longitude: number;
+        }
+      ).addTo(this.map);
     }
+  }
+
+  private createMarker({
+    id,
+    latitude,
+    longitude,
+  }: {
+    id: number;
+    latitude: number;
+    longitude: number;
+  }) {
+    if (!latitude || !longitude) {
+      throw new Error('Latitude and Longitude must be defined');
+    }
+    const marker = new Marker([latitude, longitude], {
+      icon: new Icon({
+        iconUrl:
+          "https://play-lh.googleusercontent.com/2dm0GfOVGOifJxxPtwjl--QhoicK9UrJbbQCWk4iB9-vhIhp3IqDqg0paUIcLWkU9Q=s180",
+        iconSize: [41, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [0, -41],
+      }),
+    });
+    marker.bindPopup(`
+        <div>Place ID: ${id}</div>
+        <div>Coordinates: ${parseFloat(latitude.toFixed(4))}, ${parseFloat(
+      longitude.toFixed(4)
+    )}</div>
+    `);
+
+    marker.bindTooltip(
+      `ID: ${id} | Coordinates: ${parseFloat(
+        latitude.toFixed(4)
+      )}, ${parseFloat(longitude.toFixed(4))}`
+    );
+
+    return marker;
   }
 }
 

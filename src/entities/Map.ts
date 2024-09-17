@@ -1,4 +1,5 @@
 import { YandexMap } from "./MapYandex";
+import { LeafletMap } from "./MapLeaflet";
 
 class _WorldMap extends YandexMap {
   constructor() {
