@@ -116,7 +116,7 @@ class LeafletMap extends WorldMapAbstract {
     longitude: number;
   }) {
     if (!latitude || !longitude) {
-      throw new Error('Latitude and Longitude must be defined');
+      throw new Error("Latitude and Longitude must be defined");
     }
     const marker = new Marker([latitude, longitude], {
       icon: new Icon({

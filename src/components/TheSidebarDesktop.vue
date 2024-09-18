@@ -7,7 +7,11 @@
     <v-list lines="one">
       <template v-if="items.length">
         <v-list-item v-for="item in items" :key="item.id">
-          <v-card :variant="'outlined'" :title="`ID: ${item.id}`">
+          <v-card
+            :variant="'outlined'"
+            :title="`ID: ${item.id}`"
+            :class="{ active: currentPlacemark.id == item.id }"
+          >
             <template v-slot:append>
               <v-btn
                 color="teal"
@@ -29,15 +33,19 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
-import TextTitle from "@/components/TextTitle.vue";
+import { computed, defineEmits } from "vue";
 import { useStore } from "vuex";
-const store = useStore();
+import TextTitle from "@/components/TextTitle.vue";
 
+const store = useStore();
+const emits = defineEmits(["showOnMap"]);
 const items = computed(() => store.getters.placemarkers);
+const currentPlacemark = computed(
+  () => store.getters.currentPlacemark ?? { id: 0 }
+);
 
 function showOnMap(item: { id: number; latitude: number; longitude: number }) {
-  store.dispatch("showPlacemarker", item);
+  emits("showOnMap", item);
 }
 </script>
 
@@ -52,5 +60,9 @@ function showOnMap(item: { id: number; latitude: number; longitude: number }) {
   background-color: white;
   overflow: auto;
   z-index: 100000;
+}
+
+.active {
+  background-color: #e9f7f6;
 }
 </style>

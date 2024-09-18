@@ -10,6 +10,7 @@ interface IPlacemark {
 
 interface IMapState {
   placemarkers: IPlacemark[];
+  currentPlacemark: IPlacemark | null;
 }
 
 interface YandexMapClickEvent {
@@ -26,10 +27,14 @@ interface LeafletClickEvent {
 export const mapModule = {
   state: () => ({
     placemarkers: [],
+    currentPlacemark: null,
   }),
   getters: {
     placemarkers(state: IMapState) {
       return state.placemarkers;
+    },
+    currentPlacemark(state: IMapState) {
+      return state.currentPlacemark;
     },
   },
   mutations: {
@@ -46,6 +51,15 @@ export const mapModule = {
     },
     clearPlacemarkersList(state: IMapState) {
       state.placemarkers = [];
+    },
+    setCurrentPlacemark(state: IMapState, placemark: IPlacemark) {
+      state.currentPlacemark = placemark;
+    },
+    findAndSetCurrentPlacemarker(state: IMapState, id: number) {
+      const placemark = state.placemarkers.find((p: IPlacemark) => p.id === id);
+      placemark
+        ? (state.currentPlacemark = placemark)
+        : (state.currentPlacemark = null);
     },
   },
   actions: {
@@ -117,10 +131,26 @@ export const mapModule = {
       placemark: IPlacemark
     ) {
       commit("startLoading");
+      commit("setCurrentPlacemark", placemark);
       const { latitude, longitude } = placemark;
       WorldMap.moveAroundTheMap([latitude, longitude]).finally(() =>
         commit("stopLoading")
       );
+      return placemark;
+    },
+    restoreHistoryActions(
+      { state, commit }: ActionContext<IMapState, unknown>,
+      id: string
+    ) {
+      Promise.resolve(commit("findAndSetCurrentPlacemarker", Number(id)))
+        .then(() => commit("startLoading"))
+        .then(() => {
+          if (state.currentPlacemark) {
+            const { latitude, longitude } = state.currentPlacemark;
+            WorldMap.moveAroundTheMap([latitude, longitude]);
+          }
+        })
+        .finally(() => commit("stopLoading"));
     },
   },
 };

@@ -32,13 +32,13 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, computed } from "vue";
+import { reactive, computed, defineEmits } from "vue";
 import ButtonSidebarOpen from "@/components/TheButtonSidebarOpen.vue";
 import TextTitle from "@/components/TextTitle.vue";
 import { useStore } from "vuex";
 import { viewPlacemarks$ } from "@/events/map";
 const store = useStore();
-
+const emits = defineEmits(["showOnMap"]);
 const state = reactive({
   drawer: false,
 });
@@ -51,7 +51,7 @@ function openSidebar() {
 
 function showOnMap(item: { id: number; latitude: number; longitude: number }) {
   state.drawer = false;
-  store.dispatch("showPlacemarker", item);
+  emits("showOnMap", item);
 }
 </script>
 
